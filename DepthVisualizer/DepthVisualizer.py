@@ -862,7 +862,7 @@ class DepthRenderer:
         Extracts image from renderers window
         :return: A numpy array that contains RGB frame on shape [frame_height, frame_width, 3]
         '''
-        GL.glReadBuffer(GL.GL_BACK)
+        GL.glReadBuffer(GL.GL_FRONT)
         data = GL.glReadPixels(0, 0, self.frame_width, self.frame_height, GL.GL_RGB, GL.GL_UNSIGNED_BYTE)
         image = np.frombuffer(data, dtype=np.uint8).reshape(self.frame_height, self.frame_width, 3)
         image = np.flip(image, 0)
