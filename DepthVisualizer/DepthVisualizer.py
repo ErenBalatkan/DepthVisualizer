@@ -290,12 +290,12 @@ class DepthRenderer:
         self.__voxel_indicies_data = vbo.VBO(self.__voxel_indicies, target=GL.GL_ELEMENT_ARRAY_BUFFER)
         self.__voxel_indicies_data.create_buffers()
 
-        self.__camera_coords = glm.vec3(0, 10, -10)
+        self.__camera_coords = glm.vec3(0, 10, 10)
         self.__camera_front = glm.vec3(0, 0, -1)
         self.__camera_up = glm.vec3(0, 1, 0)
 
         self.camera_yaw = -90
-        self.camera_pitch = 0
+        self.camera_pitch = -10
 
         self.__mouse_pos = [self.frame_width / 2, self.frame_height / 2]
 
