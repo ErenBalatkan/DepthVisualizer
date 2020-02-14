@@ -4,7 +4,9 @@ A simple OpenGl based Rendering library for visualizing Lidar Point Clouds & Dep
 ![Sample Gif](https://i.imgur.com/X19k7PF.gif)
 
 #### Installation
-
+```
+pip install DepthVisualizer
+```
 #### Supported Features:
 - [x] Converting depth maps to point clouds
 - [x] Converting point clouds to voxel maps
@@ -16,5 +18,5 @@ A simple OpenGl based Rendering library for visualizing Lidar Point Clouds & Dep
 
 #### Examples
 Please refer to following repository for usage examples
-INSERT LINK HERE
+https://github.com/Navhkrin/DepthVisualizer-Examples
 
