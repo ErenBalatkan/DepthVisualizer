@@ -230,6 +230,35 @@ class Utils:
         return converted_objects
 
     @staticmethod
+    def convert_points_to_voxel_map(points, voxel_map_center, voxel_map_size, voxel_size):
+        '''
+        Converts points that are inside specified 3D box into voxels
+        :param points: List of points where each point has following format [x, y, z, r, g, b]
+        :param voxel_map_center: Center coordinates of the area that will be voxellized in format [x, y, z]
+        :param voxel_map_size: Size of the area that will be voxellized in format [width, height, length]
+        :param voxel_size: Size of the each voxel
+        :return: A 3D array in x-y-z format where each element is list of size 3 that represents color
+        '''
+
+        voxel_map_size = np.asarray(np.ceil(np.array(voxel_map_size) / voxel_size), np.int32)
+        center_x, center_y, center_z = voxel_map_center
+
+        x_begin, x_end = [center_x + sign * 0.5 * voxel_map_size[0] * voxel_size for sign in [-1, 1]]
+        y_begin, y_end = [center_y + sign * 0.5 * voxel_map_size[1] * voxel_size for sign in [-1, 1]]
+        z_begin, z_end = [center_z + sign * 0.5 * voxel_map_size[2] * voxel_size for sign in [-1, 1]]
+
+        voxel_map = np.zeros(shape=(*voxel_map_size, 4))
+        for point in points:
+            x, y, z, r, g, b = point
+
+            if x_begin < x < x_end and y_begin < y < y_end and z_begin < z < z_end:
+                voxel_map[math.floor((x - x_begin) / voxel_size), math.floor((y - y_begin) / voxel_size),
+                          math.floor((z - z_begin) / voxel_size)] += [r, g, b, 1]
+
+        voxel_map = voxel_map[:, :, :, :3] / np.expand_dims(np.clip(voxel_map[:, :, :, 3], 1, None), axis=3)
+        return voxel_map
+
+    @staticmethod
     def read_kitti_3d_object(path, convert_format=True):
         '''
         Reads kitti 3d Object Labels
@@ -805,34 +834,6 @@ class DepthRenderer:
             voxel_data = voxel_data[voxel_data[:, 4] != 0]
 
         self.add_voxels(voxel_data.flatten())
-
-    def convert_points_to_voxel_map(self, points, voxel_map_center, voxel_map_size, voxel_size):
-        '''
-        Converts points that are inside specified 3D box into voxels
-        :param points: List of points where each point has following format [x, y, z, r, g, b]
-        :param voxel_map_center: Center coordinates of the area that will be voxellized in format [x, y, z]
-        :param voxel_map_size: Size of the area that will be voxellized in format [width, height, length]
-        :param voxel_size: Size of the each voxel
-        :return: A 3D array in x-y-z format where each element is list of size 3 that represents color
-        '''
-
-        voxel_map_size = np.asarray(np.ceil(np.array(voxel_map_size) / voxel_size), np.int32)
-        center_x, center_y, center_z = voxel_map_center
-
-        x_begin, x_end = [center_x + sign * 0.5 * voxel_map_size[0] * voxel_size for sign in [-1, 1]]
-        y_begin, y_end = [center_y + sign * 0.5 * voxel_map_size[1] * voxel_size for sign in [-1, 1]]
-        z_begin, z_end = [center_z + sign * 0.5 * voxel_map_size[2] * voxel_size for sign in [-1, 1]]
-
-        voxel_map = np.zeros(shape=(*voxel_map_size, 4))
-        for point in points:
-            x, y, z, r, g, b = point
-
-            if x_begin < x < x_end and y_begin < y < y_end and z_begin < z < z_end:
-                voxel_map[math.floor((x - x_begin) / voxel_size), math.floor((y - y_begin) / voxel_size),
-                          math.floor((z - z_begin) / voxel_size)] += [r, g, b, 1]
-
-        voxel_map = voxel_map[:, :, :, :3] / np.expand_dims(np.clip(voxel_map[:, :, :, 3], 1, None), axis=3)
-        return voxel_map
 
     def render(self, enable_controls=False):
         '''

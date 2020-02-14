@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name="DepthVisualizer",
     packages=["DepthVisualizer"],
-    version='0.13',
+    version='0.14',
     license="MIT",
     description="Point Cloud & Depth Map visualization library",
     author="Eren Balatkan",

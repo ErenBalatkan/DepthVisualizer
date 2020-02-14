@@ -20,3 +20,22 @@ pip install DepthVisualizer
 Please refer to following repository for usage examples
 https://github.com/Navhkrin/DepthVisualizer-Examples
 
+#### Keyboard Controls
+| Key        | Action           |
+|:-------------:|:-------------:|
+| W            | Move Forward |
+| A            |  Move Left      |
+| S            | Move Right      |
+| D            | Move Back       |
+| Left-Shift   | Move Up (+z)    |
+| Left-Control | Move Down (-z)  |
+| Arrow Up     | Turn Up        |
+| Arrow Left  | Turn Left        |
+| Arrow Right   | Turn Right       |
+| Arrow Down   | Turn Down   |
+| 1 | Enable Point Rendering   |
+| 2 | Disable Point Rendering      |
+| 3 | Enable Line Rendering      |
+| 4 | Disable Line Rendering      |
+| 5 | Enable Voxel Rendering      |
+| 6 | Disable Voxel Rendering      |
