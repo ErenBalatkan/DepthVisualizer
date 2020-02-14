@@ -1,7 +1,9 @@
 # DepthVisualizer
 A simple OpenGl based Rendering library for visualizing Lidar Point Clouds & Depth Maps.
 
-![Imgur](https://i.imgur.com/X19k7PF.gif)
+![Sample Gif](https://i.imgur.com/X19k7PF.gif)
+
+#### Installation
 
 #### Supported Features:
 - [x] Converting depth maps to point clouds
@@ -12,8 +14,7 @@ A simple OpenGl based Rendering library for visualizing Lidar Point Clouds & Dep
 - [x] Updating point cloud data real-time
 - [x] Methods for working with Kitti Dataset
 
-##### Installation
-
-
-##### Voxellization
+#### Examples
+Please refer to following repository for usage examples
+INSERT LINK HERE
 

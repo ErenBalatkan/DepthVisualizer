@@ -4,11 +4,8 @@ from OpenGL.GL import shaders
 from OpenGL.arrays import vbo
 import math
 import glm
-import cv2
 import ctypes
 import time
-from PIL import Image
-import cupy as cp
 import numpy as np
 
 vertex_shader_source = \
@@ -252,11 +249,12 @@ class Utils:
 
 class DepthRenderer:
     def __init__(self, frame_width, frame_height, window_name="Depth Visualizer",
-                 camera_move_speed=20, camera_turn_speed=90, point_size=3):
+                 camera_move_speed=20, camera_turn_speed=90, point_size=3, camera_fov=130):
         self.frame_width, self.frame_height = frame_width, frame_height
         self.window_name = window_name
         self.camera_move_speed, self.camera_turn_speed = camera_move_speed, camera_turn_speed
-        self.point_size = point_size
+        self.__point_size = point_size
+        self.__camera_fov = camera_fov
         self.last_render_time = time.time()
 
         self.__init_glfw()
@@ -265,7 +263,7 @@ class DepthRenderer:
         self.__vao_pointer = self.__init_opengl_vars()
 
         GL.glEnable(GL.GL_PROGRAM_POINT_SIZE)
-        GL.glPointSize(self.point_size)
+        GL.glPointSize(self.__point_size)
         GL.glEnable(GL.GL_DEPTH_TEST)
 
         self.__point_data = vbo.VBO(np.array([], np.float32))
@@ -292,7 +290,7 @@ class DepthRenderer:
         self.__voxel_indicies_data = vbo.VBO(self.__voxel_indicies, target=GL.GL_ELEMENT_ARRAY_BUFFER)
         self.__voxel_indicies_data.create_buffers()
 
-        self.__camera_coords = glm.vec3(0, 0, 0)
+        self.__camera_coords = glm.vec3(0, 10, -10)
         self.__camera_front = glm.vec3(0, 0, -1)
         self.__camera_up = glm.vec3(0, 1, 0)
 
@@ -367,7 +365,8 @@ class DepthRenderer:
         view_matrix = glm.lookAt(self.__camera_coords, self.__camera_coords + self.__camera_front, self.__camera_up)
         GL.glUniformMatrix4fv(view_matrix_loc, 1, GL.GL_FALSE, np.ascontiguousarray(view_matrix, np.float32))
 
-        perspective_matrix = glm.perspective(glm.radians(75), self.frame_width / self.frame_height, 0.1, 200)
+        perspective_matrix = glm.perspective(glm.radians(self.__camera_fov/2), self.frame_width / self.frame_height,
+                                             0.1, 200)
 
         projection_matrix_loc = GL.glGetUniformLocation(self.__shader_program, "projection")
         GL.glUniformMatrix4fv(projection_matrix_loc, 1, GL.GL_FALSE,
