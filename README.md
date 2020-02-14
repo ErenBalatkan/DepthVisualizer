@@ -1,7 +1,7 @@
 # DepthVisualizer
 A simple OpenGl based Rendering library for visualizing Lidar Point Clouds & Depth Maps.
 
-![Imgur](https://i.imgur.com/VNyITgQ.gif)
+![Imgur](https://i.imgur.com/VNyITgQh.gif)
 
 #### Supported Features:
 - [x] Converting depth maps to point clouds
