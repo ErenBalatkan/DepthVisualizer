@@ -7,6 +7,7 @@ import glm
 import ctypes
 import time
 import numpy as np
+from PIL import Image
 
 vertex_shader_source = \
     "#version 330 core\n" + \
@@ -166,6 +167,12 @@ class Utils:
 
         point_cloud[:, 3:] = color
         return point_cloud
+
+    @staticmethod
+    def read_depth_map(path):
+        depth_map = np.asarray(Image.open(path), np.float32)
+        depth_map = np.expand_dims(depth_map, axis=2) / 256.0
+        return depth_map
 
     @staticmethod
     def convert_objects_from_kitti_format(objects):
@@ -809,7 +816,6 @@ class DepthRenderer:
         :return: A 3D array in x-y-z format where each element is list of size 3 that represents color
         '''
 
-        #TODO UPDATE THIS METHOD
         voxel_map_size = np.asarray(np.ceil(np.array(voxel_map_size) / voxel_size), np.int32)
         center_x, center_y, center_z = voxel_map_center
 
