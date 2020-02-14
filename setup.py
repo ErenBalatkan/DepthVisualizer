@@ -8,9 +8,9 @@ setup(
     author="Eren Balatkan",
     author_email="e.balatkan@gmail.com",
     url="https://github.com/Navhkrin/DepthVisualizer",
-    download_url="",
+    download_url="https://github.com/Navhkrin/DepthVisualizer/archive/v0.1.tar.gz",
     keywords=["Point Cloud", "Depth Map", "OpenGL", "Renderer"],
-    install_requires=[  # I get to this in a second
+    install_requires=[
         'glfw',
         'PyOpenGL',
         'PyGLM',
@@ -18,7 +18,7 @@ setup(
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',  # Define that your audience are developers
+        'Intended Audience :: Developers',
         'Topic :: Artifical Intelligence Research : Helper tool',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
