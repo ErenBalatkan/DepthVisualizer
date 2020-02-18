@@ -126,7 +126,6 @@ class Utils:
 
         points[:, 0:2] = yx_coordinates
         points[:, 2] = depth_map.flatten()
-        points = points[points[:, 2] >= 1]
 
         pixel_dist = (points[:, 0] ** 2 + points[:, 1] ** 2) ** 0.5
         focal_target_dist = (focal_length_in_pixels ** 2 + pixel_dist ** 2) ** 0.5
