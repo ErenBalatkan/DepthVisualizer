@@ -236,7 +236,8 @@ class Utils:
         :param voxel_map_center: Center coordinates of the area that will be voxellized in format [x, y, z]
         :param voxel_map_size: Size of the area that will be voxellized in format [width, height, length]
         :param voxel_size: Size of the each voxel
-        :return: A 3D array in x-y-z format where each element is list of size 3 that represents color
+        :return: A 3D array in x-y-z format where each element is list of size 7 where each element is of following
+        format [r , g, b, mean x, mean y, mean z, is_not_empty]. is_not_empty value is 1 if a point falls inside voxel
         '''
 
         voxel_map_size = np.asarray(np.ceil(np.array(voxel_map_size) / voxel_size), np.int32)
@@ -246,16 +247,19 @@ class Utils:
         y_begin, y_end = [center_y + sign * 0.5 * voxel_map_size[1] * voxel_size for sign in [-1, 1]]
         z_begin, z_end = [center_z + sign * 0.5 * voxel_map_size[2] * voxel_size for sign in [-1, 1]]
 
-        voxel_map = np.zeros(shape=(*voxel_map_size, 4))
+        voxel_map = np.zeros(shape=(*voxel_map_size, 8))
         for point in points:
             x, y, z, r, g, b = point
 
             if x_begin < x < x_end and y_begin < y < y_end and z_begin < z < z_end:
                 voxel_map[math.floor((x - x_begin) / voxel_size), math.floor((y - y_begin) / voxel_size),
-                          math.floor((z - z_begin) / voxel_size)] += [r, g, b, 1]
+                          math.floor((z - z_begin) / voxel_size)] += [r, g, b, x, y, z, 0, 1]
+                voxel_map[math.floor((x - x_begin) / voxel_size), math.floor((y - y_begin) / voxel_size),
+                          math.floor((z - z_begin) / voxel_size), -2] = 1
 
-        voxel_map = voxel_map[:, :, :, :3] / np.expand_dims(np.clip(voxel_map[:, :, :, 3], 1, None), axis=3)
-        return voxel_map
+        voxel_map[:, :, :, :-2] \
+            = voxel_map[:, :, :, :-2] / np.expand_dims(np.clip(voxel_map[:, :, :, -1], 1, None), axis=3)
+        return voxel_map[:, :, :, :-1]
 
     @staticmethod
     def read_kitti_3d_object(path, convert_format=True):
@@ -803,13 +807,13 @@ class DepthRenderer:
         if glfw.get_key(self.__window, glfw.KEY_6) == glfw.PRESS:
             self.render_voxels = False
 
-    def add_voxel_map(self, voxel_map, voxel_map_center, voxel_size, filter_black_voxels=True):
+    def add_voxel_map(self, voxel_map, voxel_map_center, voxel_size, filter_empty_voxels=True):
         '''
         Adds given voxel map to renderers voxel data
         :param voxel_map: A 3D array in x-y-z format where each element is list of size 3 that represents color
         :param voxel_map_center: Center of the voxel map
         :param voxel_size: Size of voxels in meters
-        :param filter_black_voxels: Filters out black voxels if enabled
+        :param filter_empty_voxels: Filters out empty voxels if enabled
         :return: None
         '''
         x, y, z = np.meshgrid(np.arange(0, voxel_map.shape[0]), np.arange(0, voxel_map.shape[1]),
@@ -824,13 +828,13 @@ class DepthRenderer:
 
         xyz_coordinates += voxel_map_center
         voxel_data = np.zeros(shape=(voxel_map.shape[0] * voxel_map.shape[1] * voxel_map.shape[2], 7))
-        flattened_map = voxel_map.reshape(-1, 3)
+        flattened_map = voxel_map.reshape(-1, 7)
         voxel_data[:, :3] = xyz_coordinates
         voxel_data[:, 3] = voxel_size
-        voxel_data[:, 4:] = flattened_map
+        voxel_data[:, 4:] = flattened_map[:, :3]
 
-        if filter_black_voxels:
-            voxel_data = voxel_data[voxel_data[:, 4] != 0]
+        if filter_empty_voxels:
+            voxel_data = voxel_data[voxel_data[:, -1] != 0]
 
         self.add_voxels(voxel_data.flatten())
 
