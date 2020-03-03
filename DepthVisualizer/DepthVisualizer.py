@@ -64,7 +64,7 @@ class Utils:
         x = x_dist / focal_length_in_pixels * z
         y = y_dist / focal_length_in_pixels * z
 
-        return [x, y, z] + rgb
+        return [x, -y, z] + rgb
 
     @staticmethod
     def read_kitti_calibration(path):
