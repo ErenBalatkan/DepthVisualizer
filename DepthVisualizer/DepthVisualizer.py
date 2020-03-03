@@ -248,7 +248,7 @@ class Utils:
         y_begin, y_end = [center_y + sign * 0.5 * voxel_map_size[1] * voxel_size for sign in [-1, 1]]
         z_begin, z_end = [center_z + sign * 0.5 * voxel_map_size[2] * voxel_size for sign in [-1, 1]]
 
-        voxel_map = np.zeros(shape=(*voxel_map_size, 8))
+        voxel_map = np.zeros(shape=(*voxel_map_size, 7))
         for point in points:
             x, y, z, r, g, b = point
 
