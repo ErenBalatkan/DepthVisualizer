@@ -237,7 +237,8 @@ class Utils:
         :param voxel_map_size: Size of the area that will be voxellized in format [width, height, length]
         :param voxel_size: Size of the each voxel
         :return: A 3D array in x-y-z format where each element is list of size 7 where each element is of following
-        format [r , g, b, mean x, mean y, mean z, is_not_empty]. is_not_empty value is 1 if a point falls inside voxel
+        format [r , g, b, mean x, mean y, mean z, point_count]. point_count is equal to number of points that are
+        inside a voxel
         '''
 
         voxel_map_size = np.asarray(np.ceil(np.array(voxel_map_size) / voxel_size), np.int32)
@@ -253,13 +254,11 @@ class Utils:
 
             if x_begin < x < x_end and y_begin < y < y_end and z_begin < z < z_end:
                 voxel_map[math.floor((x - x_begin) / voxel_size), math.floor((y - y_begin) / voxel_size),
-                          math.floor((z - z_begin) / voxel_size)] += [r, g, b, x, y, z, 0, 1]
-                voxel_map[math.floor((x - x_begin) / voxel_size), math.floor((y - y_begin) / voxel_size),
-                          math.floor((z - z_begin) / voxel_size), -2] = 1
+                          math.floor((z - z_begin) / voxel_size)] += [r, g, b, x, y, z, 1]
 
-        voxel_map[:, :, :, :-2] \
-            = voxel_map[:, :, :, :-2] / np.expand_dims(np.clip(voxel_map[:, :, :, -1], 1, None), axis=3)
-        return voxel_map[:, :, :, :-1]
+        voxel_map[:, :, :, :-1] \
+            = voxel_map[:, :, :, :-1] / np.expand_dims(np.clip(voxel_map[:, :, :, -1], 1, None), axis=3)
+        return voxel_map
 
     @staticmethod
     def read_kitti_3d_object(path, convert_format=True):
