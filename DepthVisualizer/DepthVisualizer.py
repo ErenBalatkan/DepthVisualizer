@@ -54,17 +54,35 @@ class Utils:
 
         x_dist = x - principal_point[1]
         y_dist = y - principal_point[0]
-        pixel_dist = (x_dist ** 2 + y_dist ** 2) ** 0.5
-        focal_target = (focal_length_in_pixels ** 2 + pixel_dist ** 2) ** 0.5
 
         z = depth
         if not is_depth_along_z:
+            pixel_dist = (x_dist ** 2 + y_dist ** 2) ** 0.5
+            focal_target = (focal_length_in_pixels ** 2 + pixel_dist ** 2) ** 0.5
             z = depth * focal_length_in_pixels / focal_target
 
         x = x_dist / focal_length_in_pixels * z
         y = y_dist / focal_length_in_pixels * z
 
         return [x, -y, z] + rgb
+
+    @staticmethod
+    def convert_point_to_pixel(point, focal_length_in_pixels, principal_point):
+        '''
+        This method is used for converting a point in [x, y, z, r, g, b] to a RGBD pixel
+        :param point: A point of form [x, y, z, r, g, b]
+        :param focal_length_in_pixels: Focal length of the camera measured in pixels
+        :param principal_point: Center of the image
+        :return: An RGBD pixel in shape [y, x, depth, r, g, b]
+        '''
+
+        x_dist = point[0] / point[2] * focal_length_in_pixels
+        y_dist = point[1] / point[2] * focal_length_in_pixels
+
+        y_coord = principal_point[0] - y_dist
+        x_coord = principal_point[1] + x_dist
+
+        return [y_coord, x_coord] + point[2:]
 
     @staticmethod
     def read_kitti_calibration(path):
@@ -285,6 +303,25 @@ class Utils:
         return objects
 
 
+    @staticmethod
+    def convert_2d_bbox_to_DepthRenderer_format(bbox):
+        '''
+        Takes a 2D bounding box of format [left, top, right, bottom] and converts it to DepthRenderer format of
+        [center_x, center_y, half_width, half_height]
+        :param bbox: 4 element list of format [left, top, right, bottom]
+        :return: bbox in DepthRenderer format [center_x, center_y, half_width, half_height]
+        '''
+
+        half_width = (bbox[2]-bbox[0]) / 2
+        half_height = (bbox[3]-bbox[1]) / 2
+
+        center_x = (bbox[2]+bbox[0]) / 2
+        center_y = (bbox[3]+bbox[1]) / 2
+
+        return [center_x, center_y, half_width, half_height]
+
+
+
 class DepthRenderer:
     def __init__(self, frame_width, frame_height, window_name="Depth Visualizer",
                  camera_move_speed=20, camera_turn_speed=90, point_size=3, camera_fov=130):
@@ -347,6 +384,9 @@ class DepthRenderer:
         self.render_lines = True
         self.render_voxels = True
 
+        self.is_window_hidden = False
+        self.was_window_hidden = False
+
     def __init_glfw(self):
         glfw.init()
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
@@ -358,6 +398,7 @@ class DepthRenderer:
         Hides renderer window
         :return: None
         '''
+        self.is_window_hidden = True
         glfw.hide_window(self.__window)
 
     def show_window(self):
@@ -365,6 +406,7 @@ class DepthRenderer:
         Shows renderer window
         :return: None
         '''
+        self.is_window_hidden = False
         glfw.show_window(self.__window)
 
     def __init_window(self):
@@ -648,11 +690,20 @@ class DepthRenderer:
         '''
         self.__voxel_data.set_array(np.array([], np.float32))
 
+    def clear_all(self):
+        '''
+        Clears renderers voxel, line and point data
+        :return: None
+        '''
+        self.clear_voxels()
+        self.clear_lines()
+        self.clear_points()
+
     def add_2d_box(self, box_data, principal_point, focal_length_in_pixels=715, color=[255, 255, 255], depth=10,
                    draw_3d=False, max_depth=80):
         '''
         Draws a 2d bbox on 3d space
-        :param box_data: [center_x, center_y, width, height]
+        :param box_data: [center_x, center_y, half_width, half_height]
         :param principal_point: Center of the image
         :param focal_length_in_pixels: Camera's focal length measured in pixels
         :param color: A 3 element list that contains color [Red, Green, Blue], example = [255, 255, 255] for white
@@ -884,10 +935,17 @@ class DepthRenderer:
         :param enable_controls: If true, camera will be allowed to move using keyboard
         :return: None
         '''
+        if self.is_window_hidden:
+            self.was_window_hidden = True
+            self.show_window()
         while self.should_continue_rendering() and not self.break_render_loop:
             self.render(enable_controls)
         if self.break_render_loop:
             self.break_render_loop = False
+
+        if self.was_window_hidden:
+            self.hide_window()
+            self.was_window_hidden = False
 
     def close(self):
         '''

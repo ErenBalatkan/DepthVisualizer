@@ -2,13 +2,13 @@ from distutils.core import setup
 setup(
     name="DepthVisualizer",
     packages=["DepthVisualizer"],
-    version='0.19',
+    version='0.2',
     license="MIT",
     description="Point Cloud & Depth Map visualization library",
     author="Eren Balatkan",
     author_email="e.balatkan@gmail.com",
     url="https://github.com/Navhkrin/DepthVisualizer",
-    download_url="https://github.com/Navhkrin/DepthVisualizer/archive/v0.1.tar.gz",
+    download_url="https://github.com/Navhkrin/DepthVisualizer/archive/v0.2.tar.gz",
     keywords=["Point Cloud", "Depth Map", "OpenGL", "Renderer"],
     install_requires=[
         'glfw',
