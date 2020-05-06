@@ -303,25 +303,6 @@ class Utils:
         return objects
 
 
-    @staticmethod
-    def convert_2d_bbox_to_DepthRenderer_format(bbox):
-        '''
-        Takes a 2D bounding box of format [left, top, right, bottom] and converts it to DepthRenderer format of
-        [center_x, center_y, half_width, half_height]
-        :param bbox: 4 element list of format [left, top, right, bottom]
-        :return: bbox in DepthRenderer format [center_x, center_y, half_width, half_height]
-        '''
-
-        half_width = (bbox[2]-bbox[0]) / 2
-        half_height = (bbox[3]-bbox[1]) / 2
-
-        center_x = (bbox[2]+bbox[0]) / 2
-        center_y = (bbox[3]+bbox[1]) / 2
-
-        return [center_x, center_y, half_width, half_height]
-
-
-
 class DepthRenderer:
     def __init__(self, frame_width, frame_height, window_name="Depth Visualizer",
                  camera_move_speed=20, camera_turn_speed=90, point_size=3, camera_fov=130):
@@ -699,11 +680,28 @@ class DepthRenderer:
         self.clear_lines()
         self.clear_points()
 
-    def add_2d_box(self, box_data, principal_point, focal_length_in_pixels=715, color=[255, 255, 255], depth=10,
-                   draw_3d=False, max_depth=80):
+    @staticmethod
+    def __convert_2d_bbox_to_depthrenderer_format(bbox):
+        '''
+        Takes a 2D bounding box of format [left, top, right, bottom] and converts it to DepthRenderer format of
+        [center_x, center_y, half_width, half_height]
+        :param bbox: 4 element list of format [left, top, right, bottom]
+        :return: bbox in DepthRenderer format [center_x, center_y, half_width, half_height]
+        '''
+
+        half_width = (bbox[2] - bbox[0]) / 2
+        half_height = (bbox[3] - bbox[1]) / 2
+
+        center_x = (bbox[2] + bbox[0]) / 2
+        center_y = (bbox[3] + bbox[1]) / 2
+
+        return [center_x, center_y, half_width, half_height]
+
+    def add_2d_bbox(self, bbox, principal_point, focal_length_in_pixels=715, color=[255, 255, 255], depth=10,
+                    draw_3d=False, max_depth=80):
         '''
         Draws a 2d bbox on 3d space
-        :param box_data: [center_x, center_y, half_width, half_height]
+        :param bbox: [left, top, right, bottom]
         :param principal_point: Center of the image
         :param focal_length_in_pixels: Camera's focal length measured in pixels
         :param color: A 3 element list that contains color [Red, Green, Blue], example = [255, 255, 255] for white
@@ -712,6 +710,8 @@ class DepthRenderer:
         :param max_depth: Depth of 2nd bbox, only effective when draw_3d is set to True
         :return: None
         '''
+        box_data = DepthRenderer.__convert_2d_bbox_to_depthrenderer_format(bbox)
+
         quad_data = [[box_data[0] - box_data[2], box_data[1] + box_data[3]],
                      [box_data[0] + box_data[2], box_data[1] + box_data[3]],
                      [box_data[0] + box_data[2], box_data[1] - box_data[3]],
