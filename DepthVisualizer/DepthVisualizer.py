@@ -135,7 +135,7 @@ class Utils:
             if rgb_image.shape[0] == 3:
                 rgb_image = np.swapaxes(rgb_image, 0, 1).swapaxes(1, 2)
             rgb_image = rgb_image.reshape(-1, 3)
-            points[:, 3:6] = rgb_image / 255.0
+            points[:, 3:6] = rgb_image / 256.0
 
         y, x = np.meshgrid(np.arange(0, depth_map.shape[1]), np.arange(0, depth_map.shape[0]))
         yx_coordinates = np.array([x.flatten(), y.flatten()], np.float32).T
@@ -210,10 +210,10 @@ class Utils:
             object[8 + 0:8 + 3] = object_data_array[0 + 3:3 + 3]
             object[8 + 1] *= -1
 
-            object[11] = object_data_array[2]
-            object[12] = object_data_array[0]
-            object[13] = object_data_array[1]
+            object[11:14] = object_data_array[0:3]
             object[8 + 1] += object[12] / 2
+
+            object[14] += math.radians(90)
 
             converted_objects.append(object)
         return converted_objects
@@ -238,9 +238,9 @@ class Utils:
             object_clone[8 + 1] *= -1
 
             object_clone[11:14] = object_clone[8:11]
-            object_clone[8] = object[12]
-            object_clone[9] = object[13]
-            object_clone[10] = object[11]
+            object_clone[8:11] = object[11:14]
+
+            object_clone[14] -= math.radians(90)
 
             converted_objects.append(object_clone)
 
@@ -710,6 +710,7 @@ class DepthRenderer:
         :param max_depth: Depth of 2nd bbox, only effective when draw_3d is set to True
         :return: None
         '''
+        color = np.array(color) / 256.0
         box_data = DepthRenderer.__convert_2d_bbox_to_depthrenderer_format(bbox)
 
         quad_data = [[box_data[0] - box_data[2], box_data[1] + box_data[3]],
@@ -735,6 +736,50 @@ class DepthRenderer:
 
             self.add_lines(np.array([[first_quad_points[x], second_quad_points[x]] for x in range(4)]).flatten())
 
+    def add_3d_object_bbox(self, bbox_data, color=[255, 255, 255]):
+        '''
+        Draws 3d bounding box with direction indicator
+        :param bbox_data: [center_x, center_y, center_z, width, height, length, y_rotation]
+        :param color: A 3 element list that contains color [Red, Green, Blue], example = [255, 255, 255] for white
+        :return: None
+        '''
+        color = np.array(color) / 256.0
+        first_rect_centered = [[bbox_data[3] / 2, bbox_data[4] / 2, bbox_data[5] / 2],
+                               [-1 * bbox_data[3] / 2, bbox_data[4] / 2, bbox_data[5] / 2],
+                               [-1 * bbox_data[3] / 2, -1 * bbox_data[4] / 2, bbox_data[5] / 2],
+                               [bbox_data[3] / 2, -1 * bbox_data[4] / 2, bbox_data[5] / 2]]
+
+        second_rect_centered = [[bbox_data[3] / 2, bbox_data[4] / 2, -1 * bbox_data[5] / 2],
+                                [-1 * bbox_data[3] / 2, bbox_data[4] / 2, -1 * bbox_data[5] / 2],
+                                [-1 * bbox_data[3] / 2, -1 * bbox_data[4] / 2, -1 * bbox_data[5] / 2],
+                                [bbox_data[3] / 2, -1 * bbox_data[4] / 2, -1 * bbox_data[5] / 2]]
+
+        matrix = glm.translate(glm.mat4(1), glm.vec3(*bbox_data[:3]))
+        matrix = glm.rotate(matrix, bbox_data[-1], glm.vec3(0, 1, 0))
+
+        first_rect_centered = [list(matrix * glm.vec4(*vec, 1))[:3] for vec in first_rect_centered]
+        second_rect_centered = [list(matrix * glm.vec4(*vec, 1))[:3] for vec in second_rect_centered]
+
+        front_point = list(matrix * glm.vec4(0, 0, bbox_data[5] * 0.8, 1))[:3]
+
+        lines = [first_rect_centered[0], first_rect_centered[1],
+                 first_rect_centered[1], first_rect_centered[2],
+                 first_rect_centered[2], first_rect_centered[3],
+                 first_rect_centered[3], first_rect_centered[0],
+                 second_rect_centered[0], second_rect_centered[1],
+                 second_rect_centered[1], second_rect_centered[2],
+                 second_rect_centered[2], second_rect_centered[3],
+                 second_rect_centered[3], second_rect_centered[0],
+                 first_rect_centered[0], front_point,
+                 first_rect_centered[1], front_point,
+                 first_rect_centered[2], front_point,
+                 first_rect_centered[3], front_point
+                 ]
+        lines = np.append(lines, np.array([[first_rect_centered[x], second_rect_centered[x]] for x
+                                           in range(4)]).reshape(-1, 3), axis=0)
+        lines = np.array([[x, y, z, color[0], color[1], color[2]] for x, y, z in lines])
+        self.add_lines(lines)
+
     def add_3d_bbox(self, bbox_data, color=[255, 255, 255]):
         '''
         Draws 3d bounding box
@@ -742,7 +787,7 @@ class DepthRenderer:
         :param color: A 3 element list that contains color [Red, Green, Blue], example = [255, 255, 255] for white
         :return: None
         '''
-        color = np.array(color) / 255.0
+        color = np.array(color) / 256.0
         first_rect_centered = [[bbox_data[3] / 2, bbox_data[4] / 2, bbox_data[5] / 2],
                                [-1 * bbox_data[3] / 2, bbox_data[4] / 2, bbox_data[5] / 2],
                                [-1 * bbox_data[3] / 2, -1 * bbox_data[4] / 2, bbox_data[5] / 2],
