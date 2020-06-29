@@ -51,6 +51,7 @@ class Utils:
         calculated as distance between camera and pixel
         :return: A point of form [x, y, z, r, g, b]
         '''
+        rgb = list(rgb)
 
         x_dist = x - principal_point[1]
         y_dist = y - principal_point[0]
@@ -211,6 +212,9 @@ class Utils:
             object[8 + 1] *= -1
 
             object[11:14] = object_data_array[0:3]
+
+            object[11], object[12] = object[12], object[11]
+
             object[8 + 1] += object[12] / 2
 
             object[14] += math.radians(90)
@@ -234,6 +238,9 @@ class Utils:
 
         for object in objects:
             object_clone = object.copy()
+
+            object_clone[11], object_clone[12] = object[12], object[11]
+
             object_clone[8 + 1] -= object[12] / 2
             object_clone[8 + 1] *= -1
 
