@@ -236,13 +236,13 @@ class Utils:
         '''
         converted_objects = []
 
-        for object in objects:
+        for object in objects.copy():
             object_clone = object.copy()
-
-            object_clone[11], object_clone[12] = object[12], object[11]
 
             object_clone[8 + 1] -= object[12] / 2
             object_clone[8 + 1] *= -1
+
+            object[11], object[12] = object[12], object[11]
 
             object_clone[11:14] = object_clone[8:11]
             object_clone[8:11] = object[11:14]
