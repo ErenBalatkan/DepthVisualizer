@@ -388,6 +388,7 @@ class DepthRenderer:
         '''
         self.is_window_hidden = True
         glfw.hide_window(self.__window)
+        glfw.poll_events()
 
     def show_window(self):
         '''
