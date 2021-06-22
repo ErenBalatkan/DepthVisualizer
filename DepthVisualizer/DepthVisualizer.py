@@ -311,13 +311,14 @@ class Utils:
 
 
 class DepthRenderer:
-    def __init__(self, frame_width, frame_height, window_name="Depth Visualizer",
-                 camera_move_speed=20, camera_turn_speed=90, point_size=3, camera_fov=130):
+    def __init__(self, frame_width=1280, frame_height=720, window_name="Depth Visualizer",
+                 camera_move_speed=10, camera_turn_speed=30, point_size=3, camera_fov=80, background_color=[60, 60, 60]):
         self.frame_width, self.frame_height = frame_width, frame_height
         self.window_name = window_name
         self.camera_move_speed, self.camera_turn_speed = camera_move_speed, camera_turn_speed
         self.__point_size = point_size
         self.__camera_fov = camera_fov
+        self.__background_color = np.array(background_color, np.float32) / 256.0
         self.last_render_time = time.time()
 
         self.__init_glfw()
@@ -353,12 +354,12 @@ class DepthRenderer:
         self.__voxel_indicies_data = vbo.VBO(self.__voxel_indicies, target=GL.GL_ELEMENT_ARRAY_BUFFER)
         self.__voxel_indicies_data.create_buffers()
 
-        self.__camera_coords = glm.vec3(0, 10, 10)
-        self.__camera_front = glm.vec3(0, 0, -1)
+        self.__camera_coords = glm.vec3(0, 0, 0)
+        self.__camera_front_direction = glm.vec3(0, 0, 1)
         self.__camera_up = glm.vec3(0, 1, 0)
 
         self.camera_yaw = -90
-        self.camera_pitch = -10
+        self.camera_pitch = 0
 
         self.__mouse_pos = [self.frame_width / 2, self.frame_height / 2]
 
@@ -388,6 +389,7 @@ class DepthRenderer:
         '''
         self.is_window_hidden = True
         glfw.hide_window(self.__window)
+        glfw.poll_events()
 
     def show_window(self):
         '''
@@ -430,14 +432,14 @@ class DepthRenderer:
 
     def __update_shader_parameters(self):
         view_matrix_loc = GL.glGetUniformLocation(self.__shader_program, "view")
-        view_matrix = glm.lookAt(self.__camera_coords, self.__camera_coords + self.__camera_front, self.__camera_up)
-        GL.glUniformMatrix4fv(view_matrix_loc, 1, GL.GL_FALSE, np.ascontiguousarray(view_matrix, np.float32))
+        view_matrix = glm.lookAt(self.__camera_coords, self.__camera_coords + self.__camera_front_direction, self.__camera_up)
+        GL.glUniformMatrix4fv(view_matrix_loc, 1, GL.GL_TRUE, np.ascontiguousarray(view_matrix, np.float32))
 
         perspective_matrix = glm.perspective(glm.radians(self.__camera_fov/2), self.frame_width / self.frame_height,
                                              0.1, 200)
 
         projection_matrix_loc = GL.glGetUniformLocation(self.__shader_program, "projection")
-        GL.glUniformMatrix4fv(projection_matrix_loc, 1, GL.GL_FALSE,
+        GL.glUniformMatrix4fv(projection_matrix_loc, 1, GL.GL_TRUE,
                               np.ascontiguousarray(perspective_matrix, np.float32))
 
     def __handle_vertex_attrib(self):
@@ -523,6 +525,7 @@ class DepthRenderer:
             new_points = points
         else:
             new_points = np.append(old_points, points, axis=0)
+        print(new_points)
         self.__point_data.set_array(new_points)
 
     def clear_points(self):
@@ -841,7 +844,8 @@ class DepthRenderer:
         :param meters: Amount of meters to move
         :return:
         '''
-        self.__camera_coords += self.__camera_front * meters
+        print(self.__camera_front_direction)
+        self.__camera_coords += self.__camera_front_direction * meters
 
     def move_right(self, meters):
         '''
@@ -849,7 +853,7 @@ class DepthRenderer:
         :param meters: Amount of meters to move
         :return:
         '''
-        self.__camera_coords += glm.normalize(glm.cross(self.__camera_front, self.__camera_up)) * meters
+        self.__camera_coords += glm.normalize(glm.cross(self.__camera_front_direction, self.__camera_up)) * meters
 
     def look_up(self, angles):
         '''
@@ -950,7 +954,7 @@ class DepthRenderer:
         self.__process_input(current_time - self.last_render_time, enable_controls)
         self.last_render_time = current_time
 
-        GL.glClearColor(0.2, 0.3, 0.3, 1)
+        GL.glClearColor(*self.__background_color, 1)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         self.__update_shader_parameters()
         if self.render_points:
@@ -959,6 +963,8 @@ class DepthRenderer:
             self.__render_lines()
         if self.render_voxels:
             self.__render_voxels()
+
+        # print(self.__camera_coords)
         glfw.swap_buffers(self.__window)
         glfw.poll_events()
 
@@ -1020,4 +1026,5 @@ class DepthRenderer:
         direction.x = math.cos(glm.radians(self.camera_yaw)) * math.cos(glm.radians(self.camera_pitch))
         direction.y = math.sin(glm.radians(self.camera_pitch))
         direction.z = math.sin(glm.radians(self.camera_yaw)) * math.cos(glm.radians(self.camera_pitch))
-        self.__camera_front = glm.normalize(direction)
+        print(direction)
+        self.__camera_front_direction = glm.normalize(direction)
