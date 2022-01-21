@@ -20,7 +20,7 @@ pip install DepthVisualizer
 
 #### Examples
 Please refer to following repository for usage examples
-https://github.com/Navhkrin/DepthVisualizer-Examples
+https://github.com/ErenBalatkan/DepthVisualizer-Examples
 
 #### Keyboard Controls
 | Key        | Action           |
